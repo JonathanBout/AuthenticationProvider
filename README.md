@@ -21,4 +21,29 @@ Once logged in, you can send a request to `/Authentication/Key` to generate anot
 
 The `builder.AddKeyAuthentication()` function has an optional `configure` action, which lets you specify some stuff like the database location or the base path for the requests (e.g. to change `/Authenticate` to `/api/auth`)
 
-To mark an function or controller to need authentication you can add the `KeyAutenticated` attribute. In a class with it you can disable it for a single request by adding the `SkipAuthentication` attribute. See [the test project](https://github.com/JonathanBout/AuthenticationProvider/tree/master/AuthenticationProviderTests) for an example.
+To mark an function or controller to need authentication you can add the `KeyAutenticated` attribute. In a class with it you can disable it for a single request by adding the `SkipAuthentication` attribute. See [the test project](https://github.com/JonathanBout/AuthenticationProvider/tree/master/AuthenticationProviderTests) for an more detailed example.
+```cs
+[ApiController]
+[KeyAuthenticated]
+[Route("/[controller]/")]
+public class WeatherForecastController : ControllerBase
+{
+  [HttpGet]
+  [SkipAuthentication]
+  public object Get()
+  {
+    return Ok(new
+    {
+      Forecast = "Ice Cold Heat Wave"
+    });
+  }
+  [HttpGet("AuthenticatedRequest")]
+  public object Get()
+  {
+    return Ok(new
+    {
+      Forecast = "Super Hot Snow Storm",
+    });
+  }
+}
+```
