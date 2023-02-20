@@ -6,6 +6,34 @@ namespace JonathanBout.Authentication
 {
 	public static class WebApplicationBuilderExtensions
 	{
+		#region Username & Password
+		public static WebApplicationBuilder AddCredentialAuthentication(
+			this WebApplicationBuilder builder,
+			Action<CredentialsAuthenticationOptions>? configure)
+		{
+			if (configure is not null)
+			{
+				configure(CredentialsAuthenticationOptions.Instance);
+			}
+			return builder;
+		}
+		public static WebApplicationBuilder AddCredentialAuthentication(this WebApplicationBuilder builder)
+		{
+			return builder.AddCredentialAuthentication(null);
+		}
+
+		public static WebApplication UseCredentialAuthentication(this WebApplication application)
+		{
+			application.MapPost(CredentialsAuthenticationOptions.Instance.BasePath + "/Login",
+			(HttpContext context) =>
+			{
+
+			});
+			return application;
+		}
+
+		#endregion
+		#region Key
 		public static WebApplicationBuilder AddKeyAuthentication(this WebApplicationBuilder builder, Action<KeyAuthenticationOptions>? configure)
 		{
 			if (configure is not null)
@@ -14,7 +42,7 @@ namespace JonathanBout.Authentication
 			builder.Services.AddSingleton<ILiteDbContext, LiteDbContext>((services) =>
 			{
 				var fileInfo = new FileInfo(KeyAuthenticationOptions.Instance.DatabasePath);
-				if (!(fileInfo.Directory?.Exists??false))
+				if (!(fileInfo.Directory?.Exists ?? false))
 				{
 					fileInfo.Directory?.Create();
 				}
@@ -40,36 +68,26 @@ namespace JonathanBout.Authentication
 				string key = "";
 				int userId = 0;
 				// keep track of current activity for easier debugging on the user end.
-				string currentActivity = "";
+				string currentActivity = "parsing the body";
 				try
 				{
-					using (var streamreader = new StreamReader(context.Request.Body))
+					JsonDocument bodyJson = (await ReadBody(context))!;
+					if (bodyJson.RootElement.TryGetProperty("key", out var keyElement))
 					{
-						currentActivity = "reading the body";
-						string body = await streamreader.ReadToEndAsync();
-						currentActivity = "parsing the JSON provided in the body";
-						using var bodyJson = JsonDocument.Parse(body, new JsonDocumentOptions()
+						key = keyElement.GetString() ?? "";
+					}
+					currentActivity = "reading the 'userId' element";
+					if (bodyJson.RootElement.TryGetProperty("userId", out var idElement))
+					{
+						if (idElement.TryGetInt32(out int id))
 						{
-							AllowTrailingCommas = true,
-							CommentHandling = JsonCommentHandling.Skip
-						});
-						currentActivity = "reading the 'key' element";
-						if (bodyJson.RootElement.TryGetProperty("key", out var keyElement))
-						{
-							key = keyElement.GetString() ?? "";
+							userId = id;
 						}
-						currentActivity = "reading the 'userId' element";
-						if (bodyJson.RootElement.TryGetProperty("userId", out var idElement))
-						{
-							if (idElement.TryGetInt32(out int id))
-							{
-								userId = id;
-							}
-						}
-					};
-				}catch (Exception ex)
+					}
+				}
+				catch (Exception ex)
 				{
-					return Results.BadRequest(new { ExceptionType = ex.GetType().Name, ex.Message,  While = currentActivity });
+					return Results.BadRequest(new { ExceptionType = ex.GetType().Name, ex.Message, While = currentActivity });
 				}
 
 				if (string.IsNullOrWhiteSpace(key))
@@ -103,6 +121,32 @@ namespace JonathanBout.Authentication
 				};
 			}).AddEndpointFilter<AuthenticatedFilter>();
 			return application;
+		}
+		#endregion
+
+		internal static async Task<JsonDocument?> ReadBody(HttpContext context)
+		{
+			string currentActivity = "beginning the body read";
+			using (var streamreader = new StreamReader(context.Request.Body))
+			{
+				try
+				{
+					currentActivity = "reading the body";
+					string body = await streamreader.ReadToEndAsync();
+					currentActivity = "parsing the JSON provided in the body";
+					using var bodyJson = JsonDocument.Parse(body, new JsonDocumentOptions()
+					{
+						AllowTrailingCommas = true,
+						CommentHandling = JsonCommentHandling.Skip
+					});
+					currentActivity = "reading the 'key' element";
+					return bodyJson;
+				}
+				catch (Exception ex)
+				{
+					throw new Exception(ex.Message + " - Caught while " + currentActivity + ".", ex);
+				}
+			};
 		}
 	}
 }

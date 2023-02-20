@@ -11,7 +11,23 @@ namespace AuthenticationProviderTests
 			/*
 			 * Add key authentication
 			 */
-			builder.AddKeyAuthentication();
+			builder.AddKeyAuthentication(options =>
+			{
+				if (builder.Environment.IsDevelopment())
+				{
+					// Set development-only options
+					//options.BasePath = "/Dev/Auth";
+				}else
+				{
+					// Set Production-only options
+					//options.BasePath = "/Prod/Auth";
+				}
+			});
+
+			builder.AddCredentialAuthentication(options =>
+			{
+				
+			});
 			
 			var app = builder.Build();
 			app.UseHttpsRedirection();
