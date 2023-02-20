@@ -1,14 +1,14 @@
 ﻿namespace JonathanBout.Authentication
 {
-	public class KeyAuthenticatedFilter : IEndpointFilter
+	internal class AuthenticatedFilter : IAuthenticatedFilter
 	{
 		public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
 		{
-			if (KeyAuthenticatedAttribute.ExecuteAsync(context.HttpContext))
+			if (AuthenticatedAttribute.ExecuteAsync(context.HttpContext, null))
 			{
 				return await next(context);
 			}
-			return new { };
+			return Results.Unauthorized();
 		}
 	}
 }

@@ -3,23 +3,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthenticationProviderTests.Controllers
 {
+	/*
+	 * The [Authenticated] attribute marks this controller
+	 * to be authenticated by the chosen authenticator during
+	 * initialization (in Program.Main()).
+	 */
 	[ApiController]
-	[KeyAuthenticated]
+	[Authenticated]
 	[Route("/[controller]/")]
 	public class WeatherForecastController : ControllerBase
 	{
 		private static readonly string[] Summaries = new[]
 		{
-		"Freezing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-	};
+			"Freezing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+		};
 
-		private readonly ILogger<WeatherForecastController> _logger;
-
-		public WeatherForecastController(ILogger<WeatherForecastController> logger)
-		{
-			_logger = logger;
-		}
-
+		/*
+		 * Authentication will be skipped for this function.
+		 * the [SkipAuthentication] attribute is useable on functions,
+		 * so that it is reachable by an unauthenticated user while in 
+		 * a controller with the [Authenticated] attribute.
+		 */
 		[HttpGet]
 		[SkipAuthentication]
 		public object Get()
@@ -30,6 +34,17 @@ namespace AuthenticationProviderTests.Controllers
 			});
 		}
 
+		/*
+		 * This function does not have the [Authenticated] attribute or the
+		 * [SkipAuthentication] attribute. Because the controller has the
+		 * [Authenticated] attribute it will need the user to be authenticated. 
+		 * 
+		 * In an authenticated endpoint, it is possible to inject the
+		 * IAuthenticationSession interface. This will provide you with a 
+		 * UserId as integer. This will be created when a new user gets added and
+		 * is incremented by one for every user. With this ID you can load your
+		 * own user from your own database and do stuff with it.
+		 */
 		[HttpGet("Personalized")]
 		public object Get(IAuthenticationSession session)
 		{
@@ -40,6 +55,12 @@ namespace AuthenticationProviderTests.Controllers
 			});
 		}
 
+		/*
+		 * This function is only to give some interesting looking result for the
+		 * previous endpoints. It is adapted from the default WeatherForecast
+		 * Controller, although this one selects the summary depending on the temperature
+		 * and not completely random, which the default implementation did.
+		 */
 		private static IEnumerable<WeatherForecast> GetForecasts()
 		{
 			return Enumerable.Range(1, 5).Select(index =>
@@ -49,7 +70,8 @@ namespace AuthenticationProviderTests.Controllers
 				const int range = max - min;
 
 				int temp = Random.Shared.Next(min, max);
-				int summaryToChoose = (int)double.Round(((double)(temp - min) / ((double)range / (Summaries.Length - 1))));
+				int summaryToChoose = (int)double.Round(
+					(temp - min) / ((double)range / (Summaries.Length - 1)));
 
 				return new WeatherForecast
 				{

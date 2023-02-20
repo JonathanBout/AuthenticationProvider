@@ -24,6 +24,7 @@ namespace JonathanBout.Authentication
 		public string DatabasePath { get; set; } = "C:\\Users\\Public\\Documents\\"
 			+ (Assembly.GetEntryAssembly()?.GetName().Name??Assembly.GetExecutingAssembly().GetName().Name)
 			+ "\\authentication.db";
+
 		public KeyAuthenticationOptions() { }
 	}
 }

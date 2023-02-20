@@ -2,7 +2,7 @@
 {
 	public interface IAuthenticationSession
 	{
-		internal UserIdentifier Identifier { get; set; }
+		internal IUserIdentifier Identifier { get; set; }
 		public int CurrentUserId { get; }
 	}
 }

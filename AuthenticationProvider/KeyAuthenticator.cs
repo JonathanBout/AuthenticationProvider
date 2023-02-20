@@ -7,35 +7,33 @@ namespace JonathanBout.Authentication
 {
 	internal class KeyAuthenticator : IAuthenticator
 	{
-		private readonly int keySize;
 		private readonly ILiteCollection<KeyUserIdentifier> collection;
 		private readonly ILogger<KeyAuthenticator> logger;
 		public KeyAuthenticator(ILiteDbContext dbContext, ILogger<KeyAuthenticator> logger)
 		{
-			keySize = KeyAuthenticationOptions.Instance.KeySize;
 			collection = dbContext.LiteDatabase.GetCollection<KeyUserIdentifier>();
 			this.logger = logger;
 		}
 
-		public (string key, UserIdentifier id) AddUser()
+		public (string key, IUserIdentifier id) AddUser()
 		{
 			return AddUser(false);
 		}
 
-		private (string key, UserIdentifier id) AddUser(bool suppressLog)
+		private (string key, IUserIdentifier id) AddUser(bool suppressLog)
 		{
 			var nextIdInt = 1;
 			if (collection.Count() > 0)
 				nextIdInt = collection.Max(x => x.UserId) + 1;
 
-			var id = KeyUserIdentifier.Create(nextIdInt, keySize);
+			var id = KeyUserIdentifier.Create(nextIdInt);
 			collection.Insert(id.identifier);
 			if (!suppressLog)
 				logger.LogInformation("User added with id {id}", id.identifier.UserId);
 			return id;
 		}
 
-		public UserIdentifier? Authenticate(string hashedKey, int userId = 0)
+		public IUserIdentifier? Authenticate(string hashedKey, int userId = 0)
 		{
 			if (userId > 0)
 			{
@@ -57,7 +55,7 @@ namespace JonathanBout.Authentication
 			return collection.Delete(userId);
 		}
 
-		public UserIdentifier? Login(string key, int userId)
+		public IUserIdentifier? Login(string key, int userId)
 		{
 			if (userId > 0)
 			{

@@ -1,8 +1,5 @@
 ﻿using AspNetCore.Identity.LiteDB.Data;
 using LiteDB;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Text.Json;
 
 namespace JonathanBout.Authentication
@@ -36,19 +33,21 @@ namespace JonathanBout.Authentication
 		{
 			var service = application.Services.GetService<IAuthenticator>();
 			service?.Initialize();
+
 			string basePath = KeyAuthenticationOptions.Instance.BasePath.TrimEnd('/');
 			application.MapPost(basePath + "/Login", async (HttpContext context, IAuthenticator authenticator) =>
 			{
 				string key = "";
 				int userId = 0;
+				// keep track of current activity for easier debugging on the user end.
 				string currentActivity = "";
 				try
 				{
 					using (var streamreader = new StreamReader(context.Request.Body))
 					{
-						currentActivity = "reading the stream";
+						currentActivity = "reading the body";
 						string body = await streamreader.ReadToEndAsync();
-						currentActivity = "parsing the JSON";
+						currentActivity = "parsing the JSON provided in the body";
 						using var bodyJson = JsonDocument.Parse(body, new JsonDocumentOptions()
 						{
 							AllowTrailingCommas = true,
@@ -70,7 +69,7 @@ namespace JonathanBout.Authentication
 					};
 				}catch (Exception ex)
 				{
-					return Results.BadRequest(new { ex.Message, ExceptionType = ex.GetType().Name, While = currentActivity });
+					return Results.BadRequest(new { ExceptionType = ex.GetType().Name, ex.Message,  While = currentActivity });
 				}
 
 				if (string.IsNullOrWhiteSpace(key))
@@ -85,7 +84,7 @@ namespace JonathanBout.Authentication
 						{
 							HttpOnly = true,
 							Secure = true,
-							IsEssential = true
+							IsEssential = true,
 						});
 					return Results.Ok(new
 					{
@@ -102,7 +101,7 @@ namespace JonathanBout.Authentication
 				{
 					Secret = key
 				};
-			}).AddEndpointFilter<KeyAuthenticatedFilter>();
+			}).AddEndpointFilter<AuthenticatedFilter>();
 			return application;
 		}
 	}

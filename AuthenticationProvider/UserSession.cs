@@ -2,8 +2,8 @@
 {
 	internal class AuthenticationSession : IAuthenticationSession
 	{
-		private UserIdentifier? _identifier = null;
-		public UserIdentifier Identifier
+		private IUserIdentifier? _identifier = null;
+		public IUserIdentifier Identifier
 		{
 			get
 			{

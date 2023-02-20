@@ -1,13 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System.IO.Enumeration;
 
 namespace JonathanBout.Authentication
 {
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-	public class KeyAuthenticatedAttribute : ActionFilterAttribute
+	public class AuthenticatedAttribute : ActionFilterAttribute
 	{
-		public KeyAuthenticatedAttribute() { }
+		public AuthenticatedAttribute() { }
 
 		public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
 		{
@@ -16,10 +15,10 @@ namespace JonathanBout.Authentication
 				await next();
 			}
 		}
-
-		static internal bool ExecuteAsync(HttpContext context, ActionDescriptor? descriptor = null)
+	
+		static internal bool ExecuteAsync(HttpContext context, ActionDescriptor? descriptor)
 		{
-			if (descriptor?.FilterDescriptors.Any(x => x.Filter is SkipAuthenticationAttribute)??false)
+			if (descriptor?.FilterDescriptors.Any(x => x.Filter is SkipAuthenticationAttribute) ?? false)
 			{
 				return true;
 			}
@@ -42,6 +41,5 @@ namespace JonathanBout.Authentication
 			context.Response.StatusCode = 401;
 			return false;
 		}
-
 	}
 }

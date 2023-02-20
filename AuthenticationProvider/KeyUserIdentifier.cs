@@ -4,9 +4,10 @@ using System.Security.Cryptography;
 
 namespace JonathanBout.Authentication
 {
-	internal class KeyUserIdentifier : UserIdentifier
+	internal class KeyUserIdentifier : IUserIdentifier<KeyUserIdentifier>
 	{
 		public string KeyHash { get; set; } = "";
+		public int UserId { get; set; }
 
 		public KeyUserIdentifier() { }
 
@@ -15,18 +16,13 @@ namespace JonathanBout.Authentication
 			KeyHash = Hasher.Hash(key);
 		}
 
-		internal static (string key, KeyUserIdentifier identifier) Create(int userId, int keySize)
+		public static (string key, KeyUserIdentifier identifier) Create(int userId)
 		{
-			var key = Convert.ToBase64String(RandomNumberGenerator.GetBytes(keySize));
+			var key = Convert.ToBase64String(RandomNumberGenerator.GetBytes(KeyAuthenticationOptions.Instance.KeySize));
 			return (key, new KeyUserIdentifier(key)
 			{
 				UserId = userId
 			});
-		}
-
-		public override bool CompareString(string hash)
-		{
-			return Hasher.Compare(hash, KeyHash);
 		}
 	}
 }
