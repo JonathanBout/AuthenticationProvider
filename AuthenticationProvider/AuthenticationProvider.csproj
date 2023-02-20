@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -7,16 +7,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>JonathanBout.Authentication</RootNamespace>
     <AssemblyName>JonathanBout.Authentication</AssemblyName>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>$(DefaultNamespace)</PackageId>
-    <Version>0.1.0-prerelease</Version>
-    <Authors>Jonathan Bout</Authors>
-    <RepositoryUrl>https://github.com/JonathanBout/AuthenticationProvider</RepositoryUrl>
-    <PackageTags>aspnetcore; webapi; authentication</PackageTags>
-    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
-    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
-    <FileVersion>$(PackageVersion)</FileVersion>
-    <PackageOutputPath>C:\Users\Jonathan\source\Output\NuGet\JonathanBout.Authentication</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
